@@ -3,122 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Atrapando el Círculo</title>
+    <title>Juego Hello Kitty</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            overflow: hidden;
             background-color: #f0f0f0;
         }
         .game-container {
             position: relative;
             width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            text-align: center;
+            height: 100vh;
         }
-        .circle {
+        #kitty {
             position: absolute;
             width: 50px;
             height: 50px;
-            background-color: #3498db;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s;
+            background-image: url('https://www.pngkit.com/png/full/231-2317606_hello-kitty-png-hello-kitty.png');
+            background-size: cover;
+            bottom: 0;
+            left: 50px;
+        }
+        .obstacle {
+            position: absolute;
+            width: 30px;
+            height: 50px;
+            background-color: #333;
+            bottom: 0;
+            animation: moveObstacle 2s infinite linear;
+        }
+        @keyframes moveObstacle {
+            0% { left: 100%; }
+            100% { left: -30px; }
         }
         .scoreboard {
+            position: fixed;
+            top: 20px;
+            left: 20px;
             font-size: 24px;
-            margin-bottom: 20px;
-        }
-        .start-button {
-            padding: 10px 20px;
-            font-size: 18px;
-            background-color: #2ecc71;
-            border: none;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        .start-button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
+            font-family: 'Arial', sans-serif;
+            color: #333;
         }
     </style>
 </head>
 <body>
 
     <div class="game-container">
+        <div id="kitty"></div>
         <div class="scoreboard">
             Puntuación: <span id="score">0</span>
         </div>
-        <button class="start-button" id="startButton" onclick="startGame()">Comenzar Juego</button>
-        <div class="circle" id="circle" onclick="hitCircle()" style="display: none;"></div>
     </div>
 
     <script>
+        let kitty = document.getElementById('kitty');
         let score = 0;
-        let gameInterval;
-        let circle = document.getElementById('circle');
-        let startButton = document.getElementById('startButton');
         let scoreDisplay = document.getElementById('score');
-        let gameRunning = false;
+        let gravity = 2;
+        let isJumping = false;
 
-        function startGame() {
-            score = 0;
-            scoreDisplay.textContent = score;
-            startButton.disabled = true;
-            gameRunning = true;
-            startButton.textContent = '¡Juego en Progreso!';
+        // Crear obstáculos
+        function createObstacle() {
+            let obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            document.body.appendChild(obstacle);
+            let randomPosition = Math.random() * (window.innerHeight - 50);
 
-            gameInterval = setInterval(moveCircle, 1000);
+            obstacle.style.height = randomPosition + 'px';
+
+            // Animación para que el obstáculo se mueva
+            let obstacleMovement = setInterval(() => {
+                let kittyRect = kitty.getBoundingClientRect();
+                let obstacleRect = obstacle.getBoundingClientRect();
+
+                // Detectar colisión con Hello Kitty
+                if (kittyRect.left < obstacleRect.right && kittyRect.right > obstacleRect.left &&
+                    kittyRect.top < obstacleRect.bottom && kittyRect.bottom > obstacleRect.top) {
+                    clearInterval(obstacleMovement);
+                    alert('¡Game Over! Tu puntuación es: ' + score);
+                    location.reload();
+                }
+            }, 10);
+
+            // Eliminar obstáculos fuera de la pantalla
+            setTimeout(() => {
+                document.body.removeChild(obstacle);
+            }, 2000);
         }
 
-        function moveCircle() {
-            if (!gameRunning) return;
-
-            let randomX = Math.random() * (window.innerWidth - 50);
-            let randomY = Math.random() * (window.innerHeight - 50);
-
-            circle.style.left = randomX + 'px';
-            circle.style.top = randomY + 'px';
-            circle.style.display = 'block';
+        // Saltar
+        function jump() {
+            if (isJumping) return;
+            isJumping = true;
+            let jumpHeight = 0;
+            let jumpInterval = setInterval(() => {
+                if (jumpHeight >= 100) {
+                    clearInterval(jumpInterval);
+                    let fallInterval = setInterval(() => {
+                        if (jumpHeight <= 0) {
+                            clearInterval(fallInterval);
+                            isJumping = false;
+                        }
+                        jumpHeight -= gravity;
+                        kitty.style.bottom = jumpHeight + 'px';
+                    }, 20);
+                }
+                jumpHeight += gravity;
+                kitty.style.bottom = jumpHeight + 'px';
+            }, 20);
         }
 
-        function hitCircle() {
-            if (!gameRunning) return;
-
+        // Mover obstáculos y aumentar puntuación
+        function gameLoop() {
             score++;
             scoreDisplay.textContent = score;
-
-            let randomX = Math.random() * (window.innerWidth - 50);
-            let randomY = Math.random() * (window.innerHeight - 50);
-
-            circle.style.left = randomX + 'px';
-            circle.style.top = randomY + 'px';
+            createObstacle();
         }
 
-        function endGame() {
-            clearInterval(gameInterval);
-            gameRunning = false;
-            circle.style.display = 'none';
-            startButton.disabled = false;
-            startButton.textContent = 'Reiniciar Juego';
-        }
-
-        setInterval(() => {
-            if (score >= 10) {
-                endGame();
-                alert('¡Felicidades! Has alcanzado 10 puntos.');
+        // Iniciar el juego
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                jump();
             }
-        }, 100);
+        });
+
+        setInterval(gameLoop, 2000);
     </script>
 
 </body>
