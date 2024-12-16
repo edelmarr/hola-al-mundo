@@ -1,135 +1,116 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego Hello Kitty</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #f0f0f0;
-        }
-        .game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-        }
-        #kitty {
-            position: absolute;
-            width: 12vw;
-            height: 12vw;
-            background-image: url('https://www.pngkit.com/png/full/231-2317606_hello-kitty-png-hello-kitty.png');
-            background-size: cover;
-            bottom: 0;
-            left: 5vw;
-        }
-        .obstacle {
-            position: absolute;
-            width: 8vw;
-            height: 15vh;
-            background-color: #333;
-            bottom: 0;
-            animation: moveObstacle 2s infinite linear;
-        }
-        @keyframes moveObstacle {
-            0% { left: 100%; }
-            100% { left: -8vw; }
-        }
-        .scoreboard {
-            position: fixed;
-            top: 5vw;
-            left: 5vw;
-            font-size: 4vw;
-            font-family: 'Arial', sans-serif;
-            color: #333;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rosa Animada</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(120deg, #ffe6e6, #ffccff);
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      position: relative;
+      text-align: center;
+    }
+
+    .stem {
+      width: 10px;
+      height: 150px;
+      background: #2d572c;
+      margin: 0 auto;
+      border-radius: 5px;
+    }
+
+    .leaves {
+      position: relative;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 20px 15px 0 15px;
+      border-color: #2d572c transparent transparent transparent;
+      margin-top: -10px;
+      left: 25px;
+      transform: rotate(-30deg);
+    }
+
+    .flower {
+      position: relative;
+      margin-top: -40px;
+    }
+
+    .petal {
+      width: 50px;
+      height: 50px;
+      background: #ff3366;
+      border-radius: 50%;
+      position: absolute;
+    }
+
+    .petal1 {
+      transform: rotate(0deg) translate(30px, -30px);
+    }
+
+    .petal2 {
+      transform: rotate(72deg) translate(30px, -30px);
+    }
+
+    .petal3 {
+      transform: rotate(144deg) translate(30px, -30px);
+    }
+
+    .petal4 {
+      transform: rotate(216deg) translate(30px, -30px);
+    }
+
+    .petal5 {
+      transform: rotate(288deg) translate(30px, -30px);
+    }
+
+    #message {
+      font-size: 24px;
+      color: #800000;
+      margin-top: 20px;
+      opacity: 0;
+    }
+  </style>
 </head>
 <body>
-
-    <div class="game-container">
-        <div id="kitty"></div>
-        <div class="scoreboard">
-            Puntuación: <span id="score">0</span>
-        </div>
+  <div class="container">
+    <div class="stem"></div>
+    <div class="leaves"></div>
+    <div class="flower">
+      <div class="petal petal1"></div>
+      <div class="petal petal2"></div>
+      <div class="petal petal3"></div>
+      <div class="petal petal4"></div>
+      <div class="petal petal5"></div>
     </div>
+    <p id="message"></p>
+  </div>
+  <script>
+    const message = document.getElementById('message');
+    const text = "Kiara, te amo";
+    let index = 0;
 
-    <script>
-        let kitty = document.getElementById('kitty');
-        let score = 0;
-        let scoreDisplay = document.getElementById('score');
-        let gravity = 2;
-        let isJumping = false;
+    function typeText() {
+      if (index < text.length) {
+        message.textContent += text[index];
+        index++;
+        setTimeout(typeText, 150);
+      } else {
+        message.style.opacity = 1;
+      }
+    }
 
-        // Crear obstáculos
-        function createObstacle() {
-            let obstacle = document.createElement('div');
-            obstacle.classList.add('obstacle');
-            document.body.appendChild(obstacle);
-            let randomPosition = Math.random() * (window.innerHeight - 50);
-
-            obstacle.style.height = randomPosition + 'px';
-
-            // Animación para que el obstáculo se mueva
-            let obstacleMovement = setInterval(() => {
-                let kittyRect = kitty.getBoundingClientRect();
-                let obstacleRect = obstacle.getBoundingClientRect();
-
-                // Detectar colisión con Hello Kitty
-                if (kittyRect.left < obstacleRect.right && kittyRect.right > obstacleRect.left &&
-                    kittyRect.top < obstacleRect.bottom && kittyRect.bottom > obstacleRect.top) {
-                    clearInterval(obstacleMovement);
-                    alert('¡Game Over! Tu puntuación es: ' + score);
-                    location.reload();
-                }
-            }, 10);
-
-            // Eliminar obstáculos fuera de la pantalla
-            setTimeout(() => {
-                document.body.removeChild(obstacle);
-            }, 2000);
-        }
-
-        // Saltar
-        function jump() {
-            if (isJumping) return;
-            isJumping = true;
-            let jumpHeight = 0;
-            let jumpInterval = setInterval(() => {
-                if (jumpHeight >= 20) {
-                    clearInterval(jumpInterval);
-                    let fallInterval = setInterval(() => {
-                        if (jumpHeight <= 0) {
-                            clearInterval(fallInterval);
-                            isJumping = false;
-                        }
-                        jumpHeight -= gravity;
-                        kitty.style.bottom = jumpHeight + 'vh';
-                    }, 20);
-                }
-                jumpHeight += gravity;
-                kitty.style.bottom = jumpHeight + 'vh';
-            }, 20);
-        }
-
-        // Mover obstáculos y aumentar puntuación
-        function gameLoop() {
-            score++;
-            scoreDisplay.textContent = score;
-            createObstacle();
-        }
-
-        // Iniciar el juego
-        document.addEventListener('keydown', (e) => {
-            if (e.key === ' ' || e.key === 'ArrowUp') {
-                jump();
-            }
-        });
-
-        setInterval(gameLoop, 2000);
-    </script>
-
+    window.onload = typeText;
+  </script>
 </body>
 </html>
